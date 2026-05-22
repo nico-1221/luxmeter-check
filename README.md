@@ -17,6 +17,9 @@ python3 check_luxmeter.py --url http://<ホスト>:8890
 python3 check_luxmeter.py --url http://<ホスト>:8890 --count 5 --interval 2
 ```
 
+> **ポートについて**  
+> デフォルトは `8890` ですが、正確な値は AppConfig の設定値を参照してください。
+
 ### オプション
 
 | オプション | 説明 | デフォルト |
