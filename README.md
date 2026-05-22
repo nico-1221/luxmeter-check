@@ -5,17 +5,16 @@ HTTP API 経由で照度値を取得し、ターミナルに出力します。
 
 ## 前提条件
 
-- [uv](https://docs.astral.sh/uv/) がインストール済みであること
-- 照度センサーサービスが起動しており、HTTP API が応答する状態であること
+- Python 3.11 以上（追加パッケージ不要）
 
 ## 使い方
 
 ```bash
 # 1回計測
-uv run check_luxmeter.py --url http://<ホスト>:<ポート>
+python3 check_luxmeter.py --url http://<ホスト>:8890
 
 # 5回、2秒間隔で繰り返し計測
-uv run check_luxmeter.py --url http://<ホスト>:<ポート> --count 5 --interval 2
+python3 check_luxmeter.py --url http://<ホスト>:8890 --count 5 --interval 2
 ```
 
 ### オプション
@@ -31,7 +30,7 @@ uv run check_luxmeter.py --url http://<ホスト>:<ポート> --count 5 --interv
 
 ```
 照度計確認スクリプト
-URL: http://192.168.4.101:8080/api/v1/sensors/luxmeter/value
+URL: http://192.168.4.101:8890/api/v1/sensors/luxmeter/value
 ---
 [2026-05-22 10:30:01] 照度: 523.5 lux
 [2026-05-22 10:30:03] 照度: 521.0 lux

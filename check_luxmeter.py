@@ -1,32 +1,34 @@
 #!/usr/bin/env python3
-# /// script
-# requires-python = ">=3.11,<3.13"
-# dependencies = [
-#   "requests>=2.32.0",
-# ]
-# ///
 """照度計動作確認スクリプト。
 
 Usage:
-    uv run check_luxmeter.py --url http://<host>:<port>
-    uv run check_luxmeter.py --url http://<host>:<port> --count 5 --interval 2
+    python3 check_luxmeter.py --url http://<host>:<port>
+    python3 check_luxmeter.py --url http://<host>:<port> --count 5 --interval 2
 """
 
 import argparse
+import json
+import socket
 import sys
 import time
+import urllib.error
+import urllib.request
 from datetime import datetime
-
-import requests
 
 LUXMETER_PATH = "/api/v1/sensors/luxmeter/value"
 
 
 def fetch_lux(url: str, timeout: float) -> float:
-    response = requests.get(url, timeout=timeout)
-    if response.status_code != 200:
-        raise RuntimeError(f"HTTP {response.status_code}: {response.text}")
-    body = response.json()
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            body = json.loads(response.read().decode())
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code}: {e.reason}")
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, (TimeoutError, socket.timeout)):
+            raise TimeoutError
+        raise ConnectionError(e.reason)
+
     if "value" not in body:
         raise RuntimeError(f"レスポンスに 'value' キーがありません: {body}")
     value = body["value"]
@@ -40,7 +42,7 @@ def main() -> None:
     parser.add_argument(
         "--url",
         required=True,
-        help="センサーのベース URL (例: http://192.168.1.100:8080)",
+        help="センサーのベース URL (例: http://192.168.4.101:8890)",
     )
     parser.add_argument(
         "--count",
@@ -75,12 +77,10 @@ def main() -> None:
             lux = fetch_lux(endpoint, timeout=args.timeout)
             print(f"[{timestamp}] 照度: {lux:.1f} lux")
             success_count += 1
-        except requests.exceptions.ConnectionError:
+        except ConnectionError:
             print(f"[{timestamp}] エラー: 接続できません ({endpoint})")
-        except requests.exceptions.Timeout:
+        except TimeoutError:
             print(f"[{timestamp}] エラー: タイムアウト ({args.timeout}秒)")
-        except requests.exceptions.RequestException as e:
-            print(f"[{timestamp}] エラー: {e}")
         except (RuntimeError, TypeError) as e:
             print(f"[{timestamp}] エラー: {e}")
 
